@@ -6,7 +6,6 @@ import { Content } from "../model/Schema";
 const contentRouter = express.Router();
 import { authMiddleware } from "../Auth/authMiddleware";
 
-// Remove `userId` from the Zod validation schema
 const contentValidator = z.object({
   type: z.enum(["document", "tweet", "youtube", "link"]),
   link: z.string().optional(),
@@ -16,7 +15,7 @@ const contentValidator = z.object({
 
 contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
   try {
-    console.log("User ID from middleware:", req.userId); // Log the userId to ensure it's available
+    console.log("User ID from middleware:", req.userId);
 
     const parseData = contentValidator.safeParse(req.body);
     if (!parseData.success) {
@@ -42,7 +41,7 @@ contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
       link,
       title,
       tags,
-      userId, // This must be passed correctly to save the content
+      userId,
     });
 
     await newContent.save();
@@ -51,7 +50,7 @@ contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
       message: "Content added successfully!!!",
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return res.status(500).json({
       success: false,
       message: "Server error occurred. Try again later.",
@@ -59,11 +58,30 @@ contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
   }
 });
 
-contentRouter.get("/", authMiddleware, (req: any, res: any) => {
-  return res.status(200).json({
-    success: true,
-    message: "bhag mc",
-  });
+contentRouter.get("/", authMiddleware, async (req: any, res: any) => {
+  try {
+    const userId = req.userId;
+    const contents = await Content.find({ userId }, { __v: 0 });
+
+    const transformedContent = contents.map((content: any, index: number) => ({
+      id: index + 1,
+      type: content.type,
+      link: content.link,
+      title: content.title,
+      tags: content.tags,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      content: transformedContent,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error occurred while fetching content",
+    });
+  }
 });
 
 export { contentRouter };

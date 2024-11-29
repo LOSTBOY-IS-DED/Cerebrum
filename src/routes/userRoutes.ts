@@ -58,7 +58,7 @@ userRouter.post("/signup", async (req: any, res: any) => {
       await newUser.save();
       return res.status(200).json({
         success: true,
-        message: "Signed in successfully!!!",
+        message: "Signed up successfully!!!",
       });
     }
   } catch (error) {
