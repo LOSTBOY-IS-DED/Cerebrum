@@ -1,14 +1,15 @@
 require("dotenv").config();
 const express = require("express");
-const { Users } = require("./model/Schema");
 const mongoose = require("mongoose");
 const { userRouter } = require("./routes/userRoutes");
+import { contentRouter } from "./routes/contentRouter";
 
 const app = express();
 
 app.use(express.json());
 
-app.use("/user", userRouter);
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/content", contentRouter);
 
 async function connectionDb() {
   await mongoose

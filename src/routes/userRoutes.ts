@@ -99,7 +99,7 @@ userRouter.post("/signin", async (req: any, res: any) => {
       });
     }
     const token = jwt.sign(
-      { username: existingUser.username },
+      { username: existingUser.username, _id: existingUser._id },
       process.env.SECRET_KEY
     );
     return res.status(200).json({
