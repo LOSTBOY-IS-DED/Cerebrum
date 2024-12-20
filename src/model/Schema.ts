@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 interface IUser extends Document {
   username: string;
@@ -9,8 +9,8 @@ interface CSchema extends Document {
   type: string;
   link: string;
   title: string;
-  tags: string[];
-  userId: mongoose.Types.ObjectId;
+  tags: Types.ObjectId[]; // Assuming tags reference another model
+  userId: Types.ObjectId | { _id: Types.ObjectId; username: string }; // Updated type for userId
 }
 
 const userSchema: Schema<IUser> = new Schema({
@@ -19,48 +19,20 @@ const userSchema: Schema<IUser> = new Schema({
 });
 
 const contentSchema: Schema<CSchema> = new Schema({
-  type: {
-    type: String,
-    enum: ["document", "tweet", "youtube", "link"],
-    required: true,
-  },
-  link: {
-    type: String,
-  },
-  title: {
-    type: String,
-    required: true,
-    minlength: 1,
-  },
-  tags: {
-    type: [String],
-    required: true,
-    validate: {
-      validator: function (v: any) {
-        return v.length > 0;
-      },
-      message: "At least one tag is required",
-    },
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Users",
-    required: true,
-  },
+  type: { type: String, required: true },
+  title: { type: String, required: true },
+  link: { type: String, required: true },
+  tags: [{ type: mongoose.Types.ObjectId, ref: "Tag" }],
+  userId: { type: mongoose.Types.ObjectId, ref: "Users", required: true }, // Fixed to a single reference
 });
 
-const LinkSchema = new Schema({
-  hash: { type: String, required: true },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-    unique: true,
-  },
+const linkSchema = new Schema({
+  hash: String,
+  userId: { type: mongoose.Types.ObjectId, ref: "Users", required: true },
 });
 
 const Content = mongoose.model("Content", contentSchema);
 const Users = mongoose.model<IUser>("Users", userSchema);
-const Link = mongoose.model("Links", LinkSchema);
+const Link = mongoose.model("Links", linkSchema);
 
 export { Users, Content, Link };

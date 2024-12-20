@@ -7,10 +7,10 @@ const contentRouter = express.Router();
 import { authMiddleware } from "../Auth/authMiddleware";
 
 const contentValidator = z.object({
-  type: z.enum(["document", "tweet", "youtube", "link"]),
   link: z.string().optional(),
+  type: z.enum(["document", "tweet", "youtube", "link"]),
   title: z.string().min(1, "Title must have at least 1 character"),
-  tags: z.array(z.string()).nonempty("At least one tag is required"),
+  // tags: z.array(z.string()).optional(),
 });
 
 contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
@@ -26,7 +26,7 @@ contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
       });
     }
 
-    const { type, link, title, tags } = parseData.data;
+    const { type, link, title } = parseData.data;
     const userId = req.userId;
 
     if (!userId) {
@@ -40,7 +40,7 @@ contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
       type,
       link,
       title,
-      tags,
+      // tags,
       userId,
     });
 
@@ -61,14 +61,21 @@ contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
 contentRouter.get("/", authMiddleware, async (req: any, res: any) => {
   try {
     const userId = req.userId;
-    const contents = await Content.find({ userId }, { __v: 0 });
 
+    // Fetch contents and populate userId
+    const contents = await Content.find({ userId }, { __v: 0 }).populate(
+      "userId",
+      "username _id" // Select only the username and _id from Users
+    );
+
+    // Transform the data
     const transformedContent = contents.map((content: any, index: number) => ({
       id: index + 1,
       type: content.type,
       link: content.link,
       title: content.title,
       tags: content.tags,
+      userId: content.userId, // Contains both _id and username
     }));
 
     return res.status(200).json({
