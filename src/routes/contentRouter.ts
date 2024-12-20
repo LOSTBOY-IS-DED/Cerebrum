@@ -40,7 +40,7 @@ contentRouter.post("/", authMiddleware, async (req: any, res: any) => {
       type,
       link,
       title,
-      // tags,
+      tags: [],
       userId,
     });
 
