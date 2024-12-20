@@ -17,7 +17,7 @@ export const authMiddleware = async (
   }
   try {
     const decode = jwt.verify(token as string, process.env.SECRET_KEY);
-    console.log("Decoded Token:", decode); // Log the decoded token to verify its contents
+    // console.log("Decoded Token:", decode); // Log the decoded token to verify its contents
     //@ts-ignore
     const username = (decode as any).username;
     const user = await Users.findOne({ username });
